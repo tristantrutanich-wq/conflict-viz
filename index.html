@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConflictViz - Geopolitical Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        #sidebar {
+            width: 350px;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 100%);
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        #sidebar h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        #sidebar h2 {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+        
+        .section-title {
+            font-size: 12px;
+            color: #00d4ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0 10px 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        #conflict-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .conflict-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .conflict-item:hover {
+            background: rgba(0,212,255,0.1);
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0,212,255,0.2);
+        }
+        
+        .conflict-item.active {
+            background: rgba(0,212,255,0.15);
+            border-color: #00d4ff;
+        }
+        
+        .conflict-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        
+        .conflict-region {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .conflict-intensity {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+        
+        .intensity-low { background: #4caf50; color: #000; }
+        .intensity-medium { background: #ff9800; color: #000; }
+        .intensity-high { background: #f44336; color: #fff; }
+        
+        #custom-scenario {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(123,43,191,0.1);
+            border: 1px solid #7b2cbf;
+            border-radius: 8px;
+        }
+        
+        #custom-scenario input {
+            width: 100%;
+            padding: 10px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        #custom-scenario input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        
+        #custom-scenario button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        #custom-scenario button:hover {
+            opacity: 0.9;
+        }
+        
+        #globe-container {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(ellipse at center, #0a0e27 0%, #000 100%);
+        }
+        
+        #tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 15px;
+            pointer-events: none;
+            display: none;
+            max-width: 300px;
+            box-shadow: 0 0 30px rgba(0,212,255,0.3);
+        }
+        
+        #tooltip h3 {
+            color: #00d4ff;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        #tooltip p {
+            font-size: 13px;
+            color: #ccc;
+            margin: 4px 0;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0,212,255,0.2);
+            border-color: #00d4ff;
+        }
+        
+        #status-bar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        #status-bar.active {
+            color: #00d4ff;
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0,212,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="sidebar">
+            <h1>⚡ CONFLICTVIZ</h1>
+            <h2>Geopolitical Simulation Engine</h2>
+            
+            <div class="section-title">Active Conflicts</div>
+            <div id="conflict-list">
+                <!-- Conflicts loaded dynamically -->
+            </div>
+            
+            <div class="section-title">Custom Scenario</div>
+            <div id="custom-scenario">
+                <input type="text" id="scenario-input" placeholder="e.g., Iran invades Russia">
+                <button onclick="runCustomScenario()">Simulate</button>
+            </div>
+        </div>
+        
+        <div id="globe-container">
+            <div id="status-bar">🌐 System Ready</div>
+            <div id="tooltip"></div>
+            <div id="controls">
+                <button class="control-btn" onclick="resetView()">Reset View</button>
+                <button class="control-btn" onclick="toggleAnimation()">Pause/Play</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
